@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.filtering;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -10,16 +10,18 @@ import com.rxjava2.android.samples.R;
 import com.rxjava2.android.samples.utils.AppConstant;
 
 import androidx.appcompat.app.AppCompatActivity;
-import io.reactivex.Single;
-import io.reactivex.SingleObserver;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Predicate;
+
 
 /**
  * Created by amitshekhar on 27/08/16.
  */
-public class SingleObserverExampleActivity extends AppCompatActivity {
+public class FilterExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = SingleObserverExampleActivity.class.getSimpleName();
+    private static final String TAG = FilterExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
@@ -39,25 +41,37 @@ public class SingleObserverExampleActivity extends AppCompatActivity {
     }
 
     /*
-     * simple example using SingleObserver
+     * simple example by using filter operator to emit only even value
+     *
      */
     private void doSomeWork() {
-        Single.just("Amit")
-                .subscribe(getSingleObserver());
+        Observable.just(1, 2, 3, 4, 5, 6)
+                .filter(new Predicate<Integer>() {
+                    @Override
+                    public boolean test(Integer integer) {
+                        return integer % 2 == 0;
+                    }
+                })
+                .subscribe(getObserver());
     }
 
-    private SingleObserver<String> getSingleObserver() {
-        return new SingleObserver<String>() {
+
+    private Observer<Integer> getObserver() {
+        return new Observer<Integer>() {
+
             @Override
             public void onSubscribe(Disposable d) {
                 Log.d(TAG, " onSubscribe : " + d.isDisposed());
             }
 
             @Override
-            public void onSuccess(String value) {
-                textView.append(" onNext : value : " + value);
+            public void onNext(Integer value) {
+                textView.append(" onNext : ");
                 textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onNext value : " + value);
+                textView.append(" value : " + value);
+                textView.append(AppConstant.LINE_SEPARATOR);
+                Log.d(TAG, " onNext ");
+                Log.d(TAG, " value : " + value);
             }
 
             @Override
@@ -66,7 +80,15 @@ public class SingleObserverExampleActivity extends AppCompatActivity {
                 textView.append(AppConstant.LINE_SEPARATOR);
                 Log.d(TAG, " onError : " + e.getMessage());
             }
+
+            @Override
+            public void onComplete() {
+                textView.append(" onComplete");
+                textView.append(AppConstant.LINE_SEPARATOR);
+                Log.d(TAG, " onComplete");
+            }
         };
     }
+
 
 }

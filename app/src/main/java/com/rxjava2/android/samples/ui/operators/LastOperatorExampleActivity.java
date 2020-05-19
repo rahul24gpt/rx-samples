@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.rxjava2.android.samples.R;
+import com.rxjava2.android.samples.filtering.DistinctExampleActivity;
 import com.rxjava2.android.samples.utils.AppConstant;
 
 import androidx.annotation.Nullable;

@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.filtering;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -13,17 +13,20 @@ import java.util.concurrent.TimeUnit;
 
 import androidx.appcompat.app.AppCompatActivity;
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * Created by amitshekhar on 27/08/16.
+ * Created by amitshekhar on 22/12/16.
  */
-public class TimerExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = TimerExampleActivity.class.getSimpleName();
+public class DebounceExampleActivity extends AppCompatActivity {
+
+    private static final String TAG = DebounceExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
@@ -43,10 +46,12 @@ public class TimerExampleActivity extends AppCompatActivity {
     }
 
     /*
-     * simple example using timer to do something after 2 second
-     */
+    * Using debounce() -> only emit an item from an Observable if a particular time-span has
+    * passed without it emitting another item, so it will emit 2, 4, 5 as we have simulated it.
+    */
     private void doSomeWork() {
         getObservable()
+                .debounce(500, TimeUnit.MILLISECONDS)
                 // Run on a background thread
                 .subscribeOn(Schedulers.io())
                 // Be notified on the main thread
@@ -54,12 +59,28 @@ public class TimerExampleActivity extends AppCompatActivity {
                 .subscribe(getObserver());
     }
 
-    private Observable<? extends Long> getObservable() {
-        return Observable.timer(2, TimeUnit.SECONDS);
+    private Observable<Integer> getObservable() {
+        return Observable.create(new ObservableOnSubscribe<Integer>() {
+            @Override
+            public void subscribe(ObservableEmitter<Integer> emitter) throws Exception {
+                // send events with simulated time wait
+                emitter.onNext(1); // skip
+                Thread.sleep(400);
+                emitter.onNext(2); // deliver
+                Thread.sleep(505);
+                emitter.onNext(3); // skip
+                Thread.sleep(100);
+                emitter.onNext(4); // deliver
+                Thread.sleep(605);
+                emitter.onNext(5); // deliver
+                Thread.sleep(510);
+                emitter.onComplete();
+            }
+        });
     }
 
-    private Observer<Long> getObserver() {
-        return new Observer<Long>() {
+    private Observer<Integer> getObserver() {
+        return new Observer<Integer>() {
 
             @Override
             public void onSubscribe(Disposable d) {
@@ -67,10 +88,13 @@ public class TimerExampleActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onNext(Long value) {
-                textView.append(" onNext : value : " + value);
+            public void onNext(Integer value) {
+                textView.append(" onNext : ");
                 textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onNext : value : " + value);
+                textView.append(" value : " + value);
+                textView.append(AppConstant.LINE_SEPARATOR);
+                Log.d(TAG, " onNext ");
+                Log.d(TAG, " value : " + value);
             }
 
             @Override
@@ -88,6 +112,5 @@ public class TimerExampleActivity extends AppCompatActivity {
             }
         };
     }
-
 
 }

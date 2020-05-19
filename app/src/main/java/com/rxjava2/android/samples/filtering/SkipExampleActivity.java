@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.filtering;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -12,16 +12,16 @@ import com.rxjava2.android.samples.utils.AppConstant;
 import androidx.appcompat.app.AppCompatActivity;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Predicate;
-
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by amitshekhar on 27/08/16.
  */
-public class FilterExampleActivity extends AppCompatActivity {
+public class SkipExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = FilterExampleActivity.class.getSimpleName();
+    private static final String TAG = SkipExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
@@ -40,21 +40,22 @@ public class FilterExampleActivity extends AppCompatActivity {
         });
     }
 
-    /*
-     * simple example by using filter operator to emit only even value
-     *
-     */
+    /* Using skip operator, it will not emit
+    * the first 2 values.
+    */
     private void doSomeWork() {
-        Observable.just(1, 2, 3, 4, 5, 6)
-                .filter(new Predicate<Integer>() {
-                    @Override
-                    public boolean test(Integer integer) {
-                        return integer % 2 == 0;
-                    }
-                })
+        getObservable()
+                // Run on a background thread
+                .subscribeOn(Schedulers.io())
+                // Be notified on the main thread
+                .observeOn(AndroidSchedulers.mainThread())
+                .skip(2)
                 .subscribe(getObserver());
     }
 
+    private Observable<Integer> getObservable() {
+        return Observable.just(1, 2, 3, 4, 5);
+    }
 
     private Observer<Integer> getObserver() {
         return new Observer<Integer>() {
@@ -66,12 +67,9 @@ public class FilterExampleActivity extends AppCompatActivity {
 
             @Override
             public void onNext(Integer value) {
-                textView.append(" onNext : ");
+                textView.append(" onNext : value : " + value);
                 textView.append(AppConstant.LINE_SEPARATOR);
-                textView.append(" value : " + value);
-                textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onNext ");
-                Log.d(TAG, " value : " + value);
+                Log.d(TAG, " onNext value : " + value);
             }
 
             @Override

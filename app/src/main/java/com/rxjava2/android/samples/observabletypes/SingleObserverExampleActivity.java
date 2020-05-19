@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.observabletypes;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -10,17 +10,16 @@ import com.rxjava2.android.samples.R;
 import com.rxjava2.android.samples.utils.AppConstant;
 
 import androidx.appcompat.app.AppCompatActivity;
-import io.reactivex.Flowable;
+import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.BiFunction;
 
 /**
  * Created by amitshekhar on 27/08/16.
  */
-public class FlowableExampleActivity extends AppCompatActivity {
+public class SingleObserverExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = FlowableExampleActivity.class.getSimpleName();
+    private static final String TAG = SingleObserverExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
@@ -40,34 +39,25 @@ public class FlowableExampleActivity extends AppCompatActivity {
     }
 
     /*
-     * simple example using Flowable
+     * simple example using SingleObserver
      */
     private void doSomeWork() {
-
-        Flowable<Integer> observable = Flowable.just(1, 2, 3, 4);
-
-        observable.reduce(50, new BiFunction<Integer, Integer, Integer>() {
-            @Override
-            public Integer apply(Integer t1, Integer t2) {
-                return t1 + t2;
-            }
-        }).subscribe(getObserver());
-
+        Single.just("Amit")
+                .subscribe(getSingleObserver());
     }
 
-    private SingleObserver<Integer> getObserver() {
-
-        return new SingleObserver<Integer>() {
+    private SingleObserver<String> getSingleObserver() {
+        return new SingleObserver<String>() {
             @Override
             public void onSubscribe(Disposable d) {
                 Log.d(TAG, " onSubscribe : " + d.isDisposed());
             }
 
             @Override
-            public void onSuccess(Integer value) {
-                textView.append(" onSuccess : value : " + value);
+            public void onSuccess(String value) {
+                textView.append(" onNext : value : " + value);
                 textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onSuccess : value : " + value);
+                Log.d(TAG, " onNext value : " + value);
             }
 
             @Override
@@ -78,4 +68,5 @@ public class FlowableExampleActivity extends AppCompatActivity {
             }
         };
     }
+
 }

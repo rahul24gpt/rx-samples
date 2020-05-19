@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.create;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -9,33 +9,28 @@ import android.widget.TextView;
 import com.rxjava2.android.samples.R;
 import com.rxjava2.android.samples.utils.AppConstant;
 
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * Created by thanhtuan on 26/04/18.
+ * Created by amitshekhar on 27/08/16.
  */
-public class SwitchMapExampleActivity extends AppCompatActivity {
+public class TimerExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = SwitchMapExampleActivity.class.getSimpleName();
+    private static final String TAG = TimerExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_example);
-
         btn = findViewById(R.id.btn);
         textView = findViewById(R.id.textView);
 
@@ -47,44 +42,35 @@ public class SwitchMapExampleActivity extends AppCompatActivity {
         });
     }
 
-    /* whenever a new item is emitted by the source Observable, it will unsubscribe to and stop
-     * mirroring the Observable that was generated from the previously-emitted item,
-     * and begin only mirroring the current one.
-     *
-     * Result: 5x
+    /*
+     * simple example using timer to do something after 2 second
      */
     private void doSomeWork() {
         getObservable()
-                .switchMap(new Function<Integer, ObservableSource<String>>() {
-                    @Override
-                    public ObservableSource<String> apply(Integer integer) {
-                        int delay = new Random().nextInt(2);
-
-                        return Observable.just(integer.toString() + "x")
-                                .delay(delay, TimeUnit.SECONDS, Schedulers.io());
-                    }
-                })
+                // Run on a background thread
                 .subscribeOn(Schedulers.io())
+                // Be notified on the main thread
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(getObserver());
     }
 
-    private Observable<Integer> getObservable() {
-        return Observable.just(1, 2, 3, 4, 5);
+    private Observable<? extends Long> getObservable() {
+        return Observable.timer(2, TimeUnit.SECONDS);
     }
 
-    private Observer<String> getObserver() {
-        return new Observer<String>() {
+    private Observer<Long> getObserver() {
+        return new Observer<Long>() {
+
             @Override
             public void onSubscribe(Disposable d) {
                 Log.d(TAG, " onSubscribe : " + d.isDisposed());
             }
 
             @Override
-            public void onNext(String value) {
+            public void onNext(Long value) {
                 textView.append(" onNext : value : " + value);
                 textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onNext value : " + value);
+                Log.d(TAG, " onNext : value : " + value);
             }
 
             @Override
@@ -102,4 +88,6 @@ public class SwitchMapExampleActivity extends AppCompatActivity {
             }
         };
     }
+
+
 }

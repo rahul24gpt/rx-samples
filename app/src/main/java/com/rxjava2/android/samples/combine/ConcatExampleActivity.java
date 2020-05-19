@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.combine;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -9,23 +9,22 @@ import android.widget.TextView;
 import com.rxjava2.android.samples.R;
 import com.rxjava2.android.samples.utils.AppConstant;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
 /**
- * Created by techteam on 13/09/16.
+ * Created by amitshekhar on 27/08/16.
  */
-public class DistinctExampleActivity extends AppCompatActivity {
+public class ConcatExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = DistinctExampleActivity.class.getSimpleName();
+    private static final String TAG = ConcatExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_example);
         btn = findViewById(R.id.btn);
@@ -40,22 +39,27 @@ public class DistinctExampleActivity extends AppCompatActivity {
     }
 
     /*
-     * distinct() suppresses duplicate items emitted by the source Observable.
+     * Using concat operator to combine Observable : concat maintain
+     * the order of Observable.
+     * It will emit all the 7 values in order
+     * here - first "A1", "A2", "A3", "A4" and then "B1", "B2", "B3"
+     * first all from the first Observable and then
+     * all from the second Observable all in order
      */
     private void doSomeWork() {
+        final String[] aStrings = {"A1", "A2", "A3", "A4"};
+        final String[] bStrings = {"B1", "B2", "B3"};
 
-        getObservable()
-                .distinct()
+        final Observable<String> aObservable = Observable.fromArray(aStrings);
+        final Observable<String> bObservable = Observable.fromArray(bStrings);
+
+        Observable.concat(aObservable, bObservable)
                 .subscribe(getObserver());
     }
 
-    private Observable<Integer> getObservable() {
-        return Observable.just(1, 2, 1, 1, 2, 3, 4, 6, 4);
-    }
 
-
-    private Observer<Integer> getObserver() {
-        return new Observer<Integer>() {
+    private Observer<String> getObserver() {
+        return new Observer<String>() {
 
             @Override
             public void onSubscribe(Disposable d) {
@@ -63,21 +67,27 @@ public class DistinctExampleActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onNext(Integer value) {
+            public void onNext(String value) {
                 textView.append(" onNext : value : " + value);
                 textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onNext value : " + value);
+                Log.d(TAG, " onNext : value : " + value);
             }
 
             @Override
             public void onError(Throwable e) {
+                textView.append(" onError : " + e.getMessage());
+                textView.append(AppConstant.LINE_SEPARATOR);
                 Log.d(TAG, " onError : " + e.getMessage());
             }
 
             @Override
             public void onComplete() {
+                textView.append(" onComplete");
+                textView.append(AppConstant.LINE_SEPARATOR);
                 Log.d(TAG, " onComplete");
             }
         };
     }
+
+
 }

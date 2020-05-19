@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.transform;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -7,8 +7,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.rxjava2.android.samples.R;
-import com.rxjava2.android.samples.model.Car;
 import com.rxjava2.android.samples.utils.AppConstant;
+
+import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 import io.reactivex.Observable;
@@ -16,11 +17,11 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 
 /**
- * Created by amitshekhar on 30/08/16.
+ * Created by amitshekhar on 27/08/16.
  */
-public class DeferExampleActivity extends AppCompatActivity {
+public class BufferExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = DeferExampleActivity.class.getSimpleName();
+    private static final String TAG = BufferExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
@@ -40,24 +41,30 @@ public class DeferExampleActivity extends AppCompatActivity {
     }
 
     /*
-     * Defer used for Deferring Observable code until subscription in RxJava
+     * simple example using buffer operator - bundles all emitted values into a list
      */
     private void doSomeWork() {
 
-        Car car = new Car();
+        Observable<List<String>> buffered = getObservable().buffer(3, 1);
 
-        Observable<String> brandDeferObservable = car.brandDeferObservable();
+        // 3 means,  it takes max of three from its start index and create list
+        // 1 means, it jumps one step every time
+        // so the it gives the following list
+        // 1 - one, two, three
+        // 2 - two, three, four
+        // 3 - three, four, five
+        // 4 - four, five
+        // 5 - five
 
-        car.setBrand("BMW");  // Even if we are setting the brand after creating Observable
-        // we will get the brand as BMW.
-        // If we had not used defer, we would have got null as the brand.
-
-        brandDeferObservable
-                .subscribe(getObserver());
+        buffered.subscribe(getObserver());
     }
 
-    private Observer<String> getObserver() {
-        return new Observer<String>() {
+    private Observable<String> getObservable() {
+        return Observable.just("one", "two", "three", "four", "five");
+    }
+
+    private Observer<List<String>> getObserver() {
+        return new Observer<List<String>>() {
 
             @Override
             public void onSubscribe(Disposable d) {
@@ -65,10 +72,16 @@ public class DeferExampleActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onNext(String value) {
-                textView.append(" onNext : value : " + value);
+            public void onNext(List<String> stringList) {
+                textView.append(" onNext size : " + stringList.size());
                 textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onNext : value : " + value);
+                Log.d(TAG, " onNext : size :" + stringList.size());
+                for (String value : stringList) {
+                    textView.append(" value : " + value);
+                    textView.append(AppConstant.LINE_SEPARATOR);
+                    Log.d(TAG, " : value :" + value);
+                }
+
             }
 
             @Override

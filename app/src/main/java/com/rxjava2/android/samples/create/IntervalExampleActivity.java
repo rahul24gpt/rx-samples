@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.create;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -9,19 +9,24 @@ import android.widget.TextView;
 import com.rxjava2.android.samples.R;
 import com.rxjava2.android.samples.utils.AppConstant;
 
+import java.util.concurrent.TimeUnit;
+
 import androidx.appcompat.app.AppCompatActivity;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by amitshekhar on 27/08/16.
  */
-public class ConcatExampleActivity extends AppCompatActivity {
+public class IntervalExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = ConcatExampleActivity.class.getSimpleName();
+    private static final String TAG = IntervalExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
+    private final CompositeDisposable disposables = new CompositeDisposable();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,36 +43,34 @@ public class ConcatExampleActivity extends AppCompatActivity {
         });
     }
 
-    /*
-     * Using concat operator to combine Observable : concat maintain
-     * the order of Observable.
-     * It will emit all the 7 values in order
-     * here - first "A1", "A2", "A3", "A4" and then "B1", "B2", "B3"
-     * first all from the first Observable and then
-     * all from the second Observable all in order
-     */
-    private void doSomeWork() {
-        final String[] aStrings = {"A1", "A2", "A3", "A4"};
-        final String[] bStrings = {"B1", "B2", "B3"};
-
-        final Observable<String> aObservable = Observable.fromArray(aStrings);
-        final Observable<String> bObservable = Observable.fromArray(bStrings);
-
-        Observable.concat(aObservable, bObservable)
-                .subscribe(getObserver());
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        disposables.clear(); // clearing it : do not emit after destroy
     }
 
+    /*
+     * simple example using interval to run task at an interval of 2 sec
+     * which start immediately
+     */
+    private void doSomeWork() {
+        disposables.add(getObservable()
+                // Run on a background thread
+                .subscribeOn(Schedulers.io())
+                // Be notified on the main thread
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(getObserver()));
+    }
 
-    private Observer<String> getObserver() {
-        return new Observer<String>() {
+    private Observable<? extends Long> getObservable() {
+        return Observable.interval(0, 2, TimeUnit.SECONDS);
+    }
+
+    private DisposableObserver<Long> getObserver() {
+        return new DisposableObserver<Long>() {
 
             @Override
-            public void onSubscribe(Disposable d) {
-                Log.d(TAG, " onSubscribe : " + d.isDisposed());
-            }
-
-            @Override
-            public void onNext(String value) {
+            public void onNext(Long value) {
                 textView.append(" onNext : value : " + value);
                 textView.append(AppConstant.LINE_SEPARATOR);
                 Log.d(TAG, " onNext : value : " + value);

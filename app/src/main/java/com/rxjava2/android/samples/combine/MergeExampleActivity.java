@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.combine;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -9,21 +9,17 @@ import android.widget.TextView;
 import com.rxjava2.android.samples.R;
 import com.rxjava2.android.samples.utils.AppConstant;
 
-import java.util.concurrent.TimeUnit;
-
 import androidx.appcompat.app.AppCompatActivity;
-import io.reactivex.Completable;
-import io.reactivex.CompletableObserver;
-import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.Observable;
+import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
- * Created by amitshekhar on 27/08/16.
+ * Created by amitshekhar on 28/08/16.
  */
-public class CompletableObserverExampleActivity extends AppCompatActivity {
+public class MergeExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = CompletableObserverExampleActivity.class.getSimpleName();
+    private static final String TAG = MergeExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
@@ -43,30 +39,36 @@ public class CompletableObserverExampleActivity extends AppCompatActivity {
     }
 
     /*
-     * simple example using CompletableObserver
+     * Using merge operator to combine Observable : merge does not maintain
+     * the order of Observable.
+     * It will emit all the 7 values may not be in order
+     * Ex - "A1", "B1", "A2", "A3", "A4", "B2", "B3" - may be anything
      */
     private void doSomeWork() {
-        Completable completable = Completable.timer(1000, TimeUnit.MILLISECONDS);
+        final String[] aStrings = {"A1", "A2", "A3", "A4"};
+        final String[] bStrings = {"B1", "B2", "B3"};
 
-        completable
-                .subscribeOn(Schedulers.io())
-                // Be notified on the main thread
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(getCompletableObserver());
+        final Observable<String> aObservable = Observable.fromArray(aStrings);
+        final Observable<String> bObservable = Observable.fromArray(bStrings);
+
+        Observable.merge(aObservable, bObservable)
+                .subscribe(getObserver());
     }
 
-    private CompletableObserver getCompletableObserver() {
-        return new CompletableObserver() {
+
+    private Observer<String> getObserver() {
+        return new Observer<String>() {
+
             @Override
             public void onSubscribe(Disposable d) {
                 Log.d(TAG, " onSubscribe : " + d.isDisposed());
             }
 
             @Override
-            public void onComplete() {
-                textView.append(" onComplete");
+            public void onNext(String value) {
+                textView.append(" onNext : value : " + value);
                 textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onComplete");
+                Log.d(TAG, " onNext : value : " + value);
             }
 
             @Override
@@ -75,7 +77,15 @@ public class CompletableObserverExampleActivity extends AppCompatActivity {
                 textView.append(AppConstant.LINE_SEPARATOR);
                 Log.d(TAG, " onError : " + e.getMessage());
             }
+
+            @Override
+            public void onComplete() {
+                textView.append(" onComplete");
+                textView.append(AppConstant.LINE_SEPARATOR);
+                Log.d(TAG, " onComplete");
+            }
         };
     }
+
 
 }

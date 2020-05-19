@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.observabletypes;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -9,9 +9,11 @@ import android.widget.TextView;
 import com.rxjava2.android.samples.R;
 import com.rxjava2.android.samples.utils.AppConstant;
 
+import java.util.concurrent.TimeUnit;
+
 import androidx.appcompat.app.AppCompatActivity;
-import io.reactivex.Observable;
-import io.reactivex.Observer;
+import io.reactivex.Completable;
+import io.reactivex.CompletableObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -19,9 +21,9 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * Created by amitshekhar on 27/08/16.
  */
-public class SkipExampleActivity extends AppCompatActivity {
+public class CompletableObserverExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = SkipExampleActivity.class.getSimpleName();
+    private static final String TAG = CompletableObserverExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
@@ -40,43 +42,24 @@ public class SkipExampleActivity extends AppCompatActivity {
         });
     }
 
-    /* Using skip operator, it will not emit
-    * the first 2 values.
-    */
+    /*
+     * simple example using CompletableObserver
+     */
     private void doSomeWork() {
-        getObservable()
-                // Run on a background thread
+        Completable completable = Completable.timer(1000, TimeUnit.MILLISECONDS);
+
+        completable
                 .subscribeOn(Schedulers.io())
                 // Be notified on the main thread
                 .observeOn(AndroidSchedulers.mainThread())
-                .skip(2)
-                .subscribe(getObserver());
+                .subscribe(getCompletableObserver());
     }
 
-    private Observable<Integer> getObservable() {
-        return Observable.just(1, 2, 3, 4, 5);
-    }
-
-    private Observer<Integer> getObserver() {
-        return new Observer<Integer>() {
-
+    private CompletableObserver getCompletableObserver() {
+        return new CompletableObserver() {
             @Override
             public void onSubscribe(Disposable d) {
                 Log.d(TAG, " onSubscribe : " + d.isDisposed());
-            }
-
-            @Override
-            public void onNext(Integer value) {
-                textView.append(" onNext : value : " + value);
-                textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onNext value : " + value);
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                textView.append(" onError : " + e.getMessage());
-                textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onError : " + e.getMessage());
             }
 
             @Override
@@ -85,8 +68,14 @@ public class SkipExampleActivity extends AppCompatActivity {
                 textView.append(AppConstant.LINE_SEPARATOR);
                 Log.d(TAG, " onComplete");
             }
+
+            @Override
+            public void onError(Throwable e) {
+                textView.append(" onError : " + e.getMessage());
+                textView.append(AppConstant.LINE_SEPARATOR);
+                Log.d(TAG, " onError : " + e.getMessage());
+            }
         };
     }
-
 
 }

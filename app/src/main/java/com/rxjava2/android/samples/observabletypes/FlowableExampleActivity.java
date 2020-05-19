@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.observabletypes;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -9,22 +9,18 @@ import android.widget.TextView;
 import com.rxjava2.android.samples.R;
 import com.rxjava2.android.samples.utils.AppConstant;
 
-import java.util.concurrent.TimeUnit;
-
 import androidx.appcompat.app.AppCompatActivity;
-import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.Flowable;
+import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.functions.BiFunction;
 
 /**
- * Created by amitshekhar on 05/03/17.
+ * Created by amitshekhar on 27/08/16.
  */
+public class FlowableExampleActivity extends AppCompatActivity {
 
-public class DelayExampleActivity extends AppCompatActivity {
-
-    private static final String TAG = DelayExampleActivity.class.getSimpleName();
+    private static final String TAG = FlowableExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
@@ -44,34 +40,34 @@ public class DelayExampleActivity extends AppCompatActivity {
     }
 
     /*
-     * simple example using delay to emit after 2 second
+     * simple example using Flowable
      */
     private void doSomeWork() {
-        getObservable().delay(2, TimeUnit.SECONDS)
-                // Run on a background thread
-                .subscribeOn(Schedulers.io())
-                // Be notified on the main thread
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(getObserver());
+
+        Flowable<Integer> observable = Flowable.just(1, 2, 3, 4);
+
+        observable.reduce(50, new BiFunction<Integer, Integer, Integer>() {
+            @Override
+            public Integer apply(Integer t1, Integer t2) {
+                return t1 + t2;
+            }
+        }).subscribe(getObserver());
+
     }
 
-    private Observable<String> getObservable() {
-        return Observable.just("Amit");
-    }
+    private SingleObserver<Integer> getObserver() {
 
-    private Observer<String> getObserver() {
-        return new Observer<String>() {
-
+        return new SingleObserver<Integer>() {
             @Override
             public void onSubscribe(Disposable d) {
                 Log.d(TAG, " onSubscribe : " + d.isDisposed());
             }
 
             @Override
-            public void onNext(String value) {
-                textView.append(" onNext : value : " + value);
+            public void onSuccess(Integer value) {
+                textView.append(" onSuccess : value : " + value);
                 textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onNext : value : " + value);
+                Log.d(TAG, " onSuccess : value : " + value);
             }
 
             @Override
@@ -80,15 +76,6 @@ public class DelayExampleActivity extends AppCompatActivity {
                 textView.append(AppConstant.LINE_SEPARATOR);
                 Log.d(TAG, " onError : " + e.getMessage());
             }
-
-            @Override
-            public void onComplete() {
-                textView.append(" onComplete");
-                textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onComplete");
-            }
         };
     }
-
-
 }

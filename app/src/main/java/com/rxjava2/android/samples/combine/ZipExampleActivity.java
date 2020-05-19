@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.combine;
 
 import android.os.Bundle;
 import android.util.Log;

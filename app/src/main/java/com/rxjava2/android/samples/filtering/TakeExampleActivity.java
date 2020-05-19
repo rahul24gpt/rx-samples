@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.filtering;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -9,19 +9,19 @@ import android.widget.TextView;
 import com.rxjava2.android.samples.R;
 import com.rxjava2.android.samples.utils.AppConstant;
 
-import java.util.List;
-
 import androidx.appcompat.app.AppCompatActivity;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by amitshekhar on 27/08/16.
  */
-public class BufferExampleActivity extends AppCompatActivity {
+public class TakeExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = BufferExampleActivity.class.getSimpleName();
+    private static final String TAG = TakeExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
@@ -40,31 +40,25 @@ public class BufferExampleActivity extends AppCompatActivity {
         });
     }
 
-    /*
-     * simple example using buffer operator - bundles all emitted values into a list
-     */
+    /* Using take operator, it only emits
+    * required number of values. here only 3 out of 5
+    */
     private void doSomeWork() {
-
-        Observable<List<String>> buffered = getObservable().buffer(3, 1);
-
-        // 3 means,  it takes max of three from its start index and create list
-        // 1 means, it jumps one step every time
-        // so the it gives the following list
-        // 1 - one, two, three
-        // 2 - two, three, four
-        // 3 - three, four, five
-        // 4 - four, five
-        // 5 - five
-
-        buffered.subscribe(getObserver());
+        getObservable()
+                // Run on a background thread
+                .subscribeOn(Schedulers.io())
+                // Be notified on the main thread
+                .observeOn(AndroidSchedulers.mainThread())
+                .take(3)
+                .subscribe(getObserver());
     }
 
-    private Observable<String> getObservable() {
-        return Observable.just("one", "two", "three", "four", "five");
+    private Observable<Integer> getObservable() {
+        return Observable.just(1, 2, 3, 4, 5);
     }
 
-    private Observer<List<String>> getObserver() {
-        return new Observer<List<String>>() {
+    private Observer<Integer> getObserver() {
+        return new Observer<Integer>() {
 
             @Override
             public void onSubscribe(Disposable d) {
@@ -72,16 +66,10 @@ public class BufferExampleActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onNext(List<String> stringList) {
-                textView.append(" onNext size : " + stringList.size());
+            public void onNext(Integer value) {
+                textView.append(" onNext : value : " + value);
                 textView.append(AppConstant.LINE_SEPARATOR);
-                Log.d(TAG, " onNext : size :" + stringList.size());
-                for (String value : stringList) {
-                    textView.append(" value : " + value);
-                    textView.append(AppConstant.LINE_SEPARATOR);
-                    Log.d(TAG, " : value :" + value);
-                }
-
+                Log.d(TAG, " onNext value : " + value);
             }
 
             @Override

@@ -1,4 +1,4 @@
-package com.rxjava2.android.samples.ui.operators;
+package com.rxjava2.android.samples.utility;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -9,17 +9,22 @@ import android.widget.TextView;
 import com.rxjava2.android.samples.R;
 import com.rxjava2.android.samples.utils.AppConstant;
 
+import java.util.concurrent.TimeUnit;
+
 import androidx.appcompat.app.AppCompatActivity;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
- * Created by amitshekhar on 28/08/16.
+ * Created by amitshekhar on 05/03/17.
  */
-public class MergeExampleActivity extends AppCompatActivity {
 
-    private static final String TAG = MergeExampleActivity.class.getSimpleName();
+public class DelayExampleActivity extends AppCompatActivity {
+
+    private static final String TAG = DelayExampleActivity.class.getSimpleName();
     Button btn;
     TextView textView;
 
@@ -39,22 +44,20 @@ public class MergeExampleActivity extends AppCompatActivity {
     }
 
     /*
-     * Using merge operator to combine Observable : merge does not maintain
-     * the order of Observable.
-     * It will emit all the 7 values may not be in order
-     * Ex - "A1", "B1", "A2", "A3", "A4", "B2", "B3" - may be anything
+     * simple example using delay to emit after 2 second
      */
     private void doSomeWork() {
-        final String[] aStrings = {"A1", "A2", "A3", "A4"};
-        final String[] bStrings = {"B1", "B2", "B3"};
-
-        final Observable<String> aObservable = Observable.fromArray(aStrings);
-        final Observable<String> bObservable = Observable.fromArray(bStrings);
-
-        Observable.merge(aObservable, bObservable)
+        getObservable().delay(2, TimeUnit.SECONDS)
+                // Run on a background thread
+                .subscribeOn(Schedulers.io())
+                // Be notified on the main thread
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(getObserver());
     }
 
+    private Observable<String> getObservable() {
+        return Observable.just("Amit");
+    }
 
     private Observer<String> getObserver() {
         return new Observer<String>() {
